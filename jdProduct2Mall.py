@@ -9,6 +9,7 @@ import locale,sys
 
 category_mapper = {u'0' : u'0'};
 mall_categories_mapper = {};
+third_level_cids = [];
 
 def init_categories(write_to_db = False):
     categories = Jd_products.get_categories();
@@ -18,6 +19,7 @@ def init_categories(write_to_db = False):
     mall_categories_mapper = {};
     mall_categories = [];
     category_path = {};
+    global third_level_cids;
     cid = 1;
     for category in categories:
         category_id = str(category['_id']);
@@ -27,14 +29,17 @@ def init_categories(write_to_db = False):
             category_path.setdefault(category_id , str(cid));
         else:
             category_path.setdefault(category_id , category_path[parent_id] + '|' + str(cid));
+        depth = category['depth'];
         mall_category = {
                           'id' : cid,
                           'name' : str(category['name']),
                           'parent_id' : category_mapper[parent_id],
-                          'depth' : category['depth'],
+                          'depth' : depth,
                           'path' : category_path[category_id],
                           'has_child' : 1
                         };
+        if depth == 3:
+           third_level_cids.append(category_id);
         mall_categories.append(mall_category);
         mall_categories_mapper.setdefault(cid,mall_category);
         cid += 1;
@@ -43,14 +48,19 @@ def init_categories(write_to_db = False):
         Mall_products.add_categories(mall_categories);
         
 
+def init_products():
+    for cid in third_level_cids:
+        products = Jd_products.get_products_by_category(cid);
+        add_products(products);
+    
 
+sku_id = 1;
+product_id = 1;
 
-def init_products(): 
+def add_products(products): 
     global category_mapper;
-    products = Jd_products.get_products_by_category('9d1b4ba8966f4fa479e2734a610f9af9');
-
-    sku_id = 1;
-    product_id = 1;
+    global sku_id;
+    global product_id;
     new_products = [];
     sps = [[1,2,3],[4,5,6],[7,8,9]];
     sps_values = [['白色','红色','黑色'],['小号','中号','大号'],['初级版','中级版','高级版']];

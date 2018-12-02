@@ -24,4 +24,4 @@ class Jd_products:
     @classmethod
     def get_products_by_category(cls,cid):
         db = Jd_products.get_db();
-        return db.JDProduct.find({}).skip(0).limit(5);
+        return db.JDProduct.find({'cid':cid});
